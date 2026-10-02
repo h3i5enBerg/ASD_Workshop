@@ -1,52 +1,16 @@
 const express = require('express');
+const productRoutes = require('./routes/productRoutes');
+
 const app = express();
-const port = 3000;
-const path = require('path')
-const fs = require("fs/promises");
-const { rejects } = require('assert');
+const port = process.env.PORT || 3000;
 
-let filePath = path.join(__dirname, "db.json")
+app.use(express.json());
+app.use('/', productRoutes);
 
-async function readData() {
-    let data = await fs.readFile(filePath, "utf-8")
-    return JSON.parse(data)
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Server listening on port ${port}`);
+    });
 }
 
-async function delayReadData() {
-    await new Promise((resolve, reject) => {
-        setTimeout(() => resolve() , 1500)
-    })
-    return await readData()
-}
-
-app.get('/products', async (req, res) => {
-    try {
-        let products = await delayReadData()
-        res.json(products)
-    } catch (error) {
-        res.send(error)
-    }
-});
-
-app.get('/products/:id', async (req, res) => {
-
-    try {
-        let id = Number(req.params.id)
-        let products = await delayReadData()
-        let data = products.find((item) => item.id == id)
-        res.json(data)
-    } catch (error) {
-        res.send(error)
-    }
-
-});
-
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
-
-
-let cache = {}
-// "/products" - []
-// "/products/1" - {}
-// "/products/2" - {}
+module.exports = app;
